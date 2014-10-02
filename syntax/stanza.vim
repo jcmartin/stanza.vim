@@ -50,11 +50,11 @@ syn match  stanzaLiteralInside ".\{-}" contained
 syn region stanzaChar matchgroup=stanzaChar start="\'" end="\'" contains=stanzaStringEscape
 
 " Identifiers
-execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaColonType,stanzaAs,stanzaSquareBrackets skipwhite'
 syn match   stanzaColonType  ":"               contained nextgroup=stanzaType                    skipwhite
 
 " Casting
-syn keyword stanzaAs                 as                     contained nextgroup=stanzaType skipwhite
+" execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaAs skipwhite'
+syn keyword stanzaAs                 as             nextgroup=stanzaType skipwhite
 
 " Setter Function
 syn keyword stanzaSetter             setter                            nextgroup=stanzaEqualArrow         skipwhite
@@ -67,7 +67,7 @@ syn region stanzaType          matchgroup=stanzaType          start="("  end=")"
 syn region stanzaType          matchgroup=stanzaTypeTuple     start="\[" end="\]" contained contains=stanzaType nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite
 syn region stanzaTypeParameter matchgroup=stanzaTypeParameter start="<"  end=">"  contained contains=stanzaType nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite
 
-syn match stanzaTypeOperator  "<:\||\|->\|&"       contained nextgroup=stanzaType skipwhite
+syn match stanzaTypeOperator  "<:\||\|->\|&"       contained nextgroup=stanzaType skipwhite skipnl
 
 
 " definitions
@@ -112,7 +112,7 @@ if !exists("stanza_no_builtin_highlight")
   syn keyword stanzaBuiltin	print print-all println println-all
   syn keyword stanzaBuiltin length
   syn keyword stanzaBuiltin list head headn tail tailn
-  syn keyword stanzaBuiltin do map find
+  syn keyword stanzaBuiltin do map find filter
   syn keyword stanzaBuiltin equal? less? greater? less-eq? greater-eq?
   syn keyword stanzaBuiltin substring
   syn keyword stanzaBuiltin get set
@@ -126,6 +126,8 @@ if !exists("stanza_no_builtin_highlight")
   syn keyword stanzaBuiltin $do-prim
   syn keyword stanzaBuiltin current-coroutine parent winder set-winder windouts windins call-windins
   syn keyword stanzaBuiltin send break open?
+  syn keyword stanzaBuiltin any? none? all?
+  syn keyword stanzaBuiltin count join
 endif
 
 " string literals with escapes
