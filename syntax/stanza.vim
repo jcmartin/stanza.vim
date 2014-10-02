@@ -27,7 +27,7 @@ let OPER="[~!@#$%^*+=./:<>&|-]"
 execute 'let NUM="'.DIGIT.CHAR.'*"'
 execute 'let ID="'.CHAR.'*'.LETTER.CHAR.'*"'
 
-execute 'syn match   stanzaInfixOperators "'.OPER.'*"'
+execute 'syn match   stanzaInfixOperators "'.OPER.OPER.'\{-}"'
 
 syn keyword stanzaInclude     import include
 
