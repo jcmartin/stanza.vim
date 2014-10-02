@@ -53,7 +53,7 @@ syn region stanzaChar matchgroup=stanzaChar start="\'" end="\'" contains=stanzaS
 syn match   stanzaColonType  ":"               contained nextgroup=stanzaType                    skipwhite
 
 " Casting
-" execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaAs skipwhite'
+execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaAs skipwhite'
 syn keyword stanzaAs                 as             nextgroup=stanzaType skipwhite
 
 " Setter Function
