@@ -16,26 +16,29 @@ elseif exists("b:current_syntax")
 endif
 
 " Stanza lets users use more than just alphanumerics and _ in identifiers
-set iskeyword=@,48-57,_,-,+,*,/,=,!,?,@,$,>,<,%,#,~,.
+"       Note: 30 corresponds to ^
+set iskeyword=@,48-57,_,?,~,!,@,#,$,%,30,*,+,-,=,/,.
 
-syn keyword stanzaConditional if else switch match case when
-syn keyword stanzaRepeat      for while
-syn keyword stanzaOperator    and in to is not or new through by let
-syn keyword stanzaScopeDecl   public
-syn keyword stanzaEmptyArg    _
-syn keyword stanzaInfixOperators == != + - / * $ = >= <= > < % << >>
-syn match   stanzaInfixOperators "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=[-!#$%&\*\+/<=>\?@\\^|~.][-!#$%&\*\+/<=>\?@\\^|~:.]*"
-syn match   stanzaInfixOperators "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=:[-!#$%&\*\+./<=>\?@\\^|~:]*"
-syn keyword stanzaException   throw try catch
+let LETTER='[a-zA-Z_?]'
+let DIGIT="[0-9]"
+let CHAR="[a-zA-Z_?0-9~!@#\$%\^*+=./-]"
+let OPER="[~!@#$%^*+=./:<>&|-]"
+
+execute 'let NUM="'.DIGIT.CHAR.'*"'
+execute 'let ID="'.CHAR.'*'.LETTER.CHAR.'*"'
+
+execute 'syn match   stanzaInfixOperators "'.OPER.'*"'
 
 syn keyword stanzaInclude     import include
 
 syn match   stanzaComment    ";.*$" contains=stanzaTodo,@Spell
 syn keyword stanzaTodo        FIXME NOTE NOTES TODO XXX contained
 
-syn keyword stanzaInclude      include      nextgroup=stanzaIncludeFile skipwhite
+syn keyword stanzaInclude     include                     nextgroup=stanzaIncludeFile skipwhite
+syn region  stanzaIncludeFile start="<" end=">" contained contains=stanzaString       skipwhite
 
-syn region stanzaIncludeFile start="<" end=">" contained contains=stanzaString skipwhite
+" Label
+syn keyword stanzaLabel  label nextgroup=stanzaTypeParameter skipwhite
 
 " Stanza Literals
 syn match  stanzaLiteral "`[^ (),\[\]]\+"
@@ -47,29 +50,24 @@ syn match  stanzaLiteralInside ".\{-}" contained
 syn region stanzaChar matchgroup=stanzaChar start="\'" end="\'" contains=stanzaStringEscape
 
 " Identifiers
-syn match stanzaIdentifier "[^ ,"'`;&|<>\\:()\[\]\{\}]\+" nextgroup=stanzaColonType,stanzaAs,stanzaSquareBrackets skipwhite
-syn match stanzaColonType ":"                contained   nextgroup=stanzaTupleType,stanzaType skipwhite
-"syn region stanzaSquareBrackets start="\[" end="\]" contained skipwhite
+execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaColonType,stanzaAs,stanzaSquareBrackets skipwhite'
+syn match   stanzaColonType  ":"               contained nextgroup=stanzaType                    skipwhite
 
 " Casting
-syn keyword stanzaAs as contained nextgroup=stanzaType skipwhite
+syn keyword stanzaAs                 as                     contained nextgroup=stanzaType skipwhite
 
 " Setter Function
-syn keyword stanzaSetter setter nextgroup=stanzaEqualArrow skipwhite
-syn match  stanzaEqualArrow "=>" contained nextgroup=stanzaSetterFunctionName skipwhite
-syn match stanzaSetterFunctionName "[^ \]\\$\!=:;([\"]\+" contained
+syn keyword stanzaSetter             setter                            nextgroup=stanzaEqualArrow         skipwhite
+syn match   stanzaEqualArrow         "=>"                    contained nextgroup=stanzaSetterFunctionName skipwhite
+execute 'syn match   stanzaSetterFunctionName "'.ID.'" contained'
 
 " Types
-syn match  stanzaType    "[^ ()-<>|=:;\[\]]\+\|()" contained nextgroup=stanzaTypeAnd,stanzaArrow,stanzaOr,stanzaTypeParameter,stanzaSubType skipwhite
-syn region stanzaTypeParameter matchgroup=stanzaTypeParameter start="<" end=">"   contained contains=stanzaType,stanzaTupleType nextgroup=stanzaTypeAnd,stanzaArrow,stanzaOr,stanzaTypeParameter,stanzaSubType skipwhite
-syn region stanzaTupleType matchgroup=stanzaTupleType start="\[" end="\]"     contained contains=stanzaType,stanzaTupleType nextgroup=stanzaTypeAnd,stanzaArrow,stanzaOr,stanzaTypeParameter,stanzaSubType skipwhite
-syn match  stanzaSubType "<:"                      contained                     nextgroup=stanzaType,stanzaTupleType skipwhite
-syn match  stanzaOr      "|"                       contained                     nextgroup=stanzaType,stanzaTupleType skipwhite
-syn match  stanzaArrow   "->"                      contained                     nextgroup=stanzaType,stanzaTupleType skipwhite
-syn match  stanzaTypeAnd "&"                       contained                     nextgroup=stanzaType,stanzaTupleType skipwhite skipnl
+execute 'syn match  stanzaType    "'.ID.'" contained nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite'
+syn region stanzaType          matchgroup=stanzaType          start="("  end=")"  contained contains=stanzaType nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite
+syn region stanzaType          matchgroup=stanzaTypeTuple     start="\[" end="\]" contained contains=stanzaType nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite
+syn region stanzaTypeParameter matchgroup=stanzaTypeParameter start="<"  end=">"  contained contains=stanzaType nextgroup=stanzaTypeOperator,stanzaTypeParameter skipwhite
 
-" Label
-syn keyword stanzaLabel        label        nextgroup=stanzaDefNameParameterTypes
+syn match stanzaTypeOperator  "<:\||\|->\|&"       contained nextgroup=stanzaType skipwhite
 
 
 " definitions
@@ -78,51 +76,34 @@ syn keyword stanzaDef          defn defn*   nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefPackage   defpackage   nextgroup=stanzaDefPackageName skipwhite
 syn keyword stanzaVal          val          nextgroup=stanzaValName skipwhite
 syn keyword stanzaVar          var          nextgroup=stanzaVarName skipwhite
-syn keyword stanzaDefClass     defclass     nextgroup=stanzaType,stanzaTupleType skipwhite
-syn keyword stanzaDefInterface definterface nextgroup=stanzaType,stanzaTupleType skipwhite
+syn keyword stanzaDefClass     defclass     nextgroup=stanzaType skipwhite
+syn keyword stanzaDefInterface definterface nextgroup=stanzaType skipwhite
 syn keyword stanzaDefMulti     defmulti     nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefInterface defmethod    nextgroup=stanzaDefName skipwhite
-syn keyword stanzaDefStruct    defstruct    nextgroup=stanzaTupleType,stanzaType skipwhite
+syn keyword stanzaDefStruct    defstruct    nextgroup=stanzaType skipwhite
 
-syn match stanzaValName        "[^ \\$\!=:;([\"]\+" contained nextgroup=stanzaColonType skipwhite
-syn match stanzaVarName        "[^ \\$\!=:;([\"]\+" contained nextgroup=stanzaColonType skipwhite
-syn match stanzaDefPackageName "[^ \\$\!=:;([\"]\+" contained
+execute 'syn match stanzaValName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
+execute 'syn match stanzaVarName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
+execute 'syn match stanzaDefPackageName "'.ID.'" contained'
 
 " Function Name etc
-syn match  stanzaDefName   "[^ <>:()]\+"                     contained nextgroup=stanzaDefNameParameterTypes,stanzaArgumentList skipwhite
-syn region stanzaDefNameParameterTypes matchgroup=stanzaDefNameParameterTypes start="<" end=">" contained contains=stanzaTupleType,stanzaType nextgroup=stanzaArgumentList skipwhite
-syn region stanzaArgumentList matchgroup=stanzaArgumentList start="(" end=")"            contained contains=stanzaArgument nextgroup=stanzaArrow skipwhite
-syn match  stanzaArgument      "[^ ,()&:]\+"               contained nextgroup=stanzaArgumentColon skipwhite
+execute 'syn match  stanzaDefName       "'.ID.'" contained nextgroup=stanzaDefNameParameterTypes,stanzaArgumentList skipwhite'
+syn region stanzaDefNameParameterTypes matchgroup=stanzaDefNameParameterTypes start="<" end=">" contained contains=stanzaType nextgroup=stanzaArgumentList skipwhite
+syn region stanzaArgumentList          matchgroup=stanzaArgumentList          start="(" end=")" contained contains=stanzaArgument   nextgroup=stanzaFunctionArrow skipwhite
+syn match stanzaFunctionArrow          "->" contained nextgroup=stanzaType skipwhite
+execute 'syn match  stanzaArgument      "'.ID.'" contained nextgroup=stanzaArgumentColon,stanzaArgumentComma,stanzaArgument skipwhite"'
 syn match  stanzaArgumentComma ","                         contained nextgroup=stanzaArgument skipwhite
-syn match  stanzaArgumentColon ":"                         contained nextgroup=stanzaArgumentOutsideType,stanzaArgumentOutsideTupleType,stanzaArgumentOutsideTypeParen skipwhite
+syn match  stanzaArgumentColon ":"                         contained nextgroup=stanzaType skipwhite
 
 
 
-" Everything below is to handle the fact that argument commas are different
-" from type commas
-syn match  stanzaArgumentOutsideType "[^ -$!<>|,=:;()\[ ]\+\|()" contained nextgroup=stanzaArgumentOutsideOr,stanzaArgumentOutsideTypeParameter,stanzaArgumentOutsideArrow,stanzaArgumentComma skipwhite
-syn match  stanzaArgumentOutsideOr   "|"                         contained nextgroup=stanzaArgumentOutsideType,stanzaArgumentOutsideTupleType,stanzaArgumentOutsideTypeParen skipwhite
-syn match  stanzaArgumentOutsideAnd  "&"                         contained nextgroup=stanzaArgumentOutsideType,stanzaArgumentOutsideTupleType,stanzaArgumentOutsideTypeParen skipwhite
-syn match  stanzaArgumentOutsideArrow "->"                       contained nextgroup=stanzaArgumentOutsideType,stanzaArgumentOutsideTupleType,stanzaArgumentOutsideTypeParen skipwhite
-syn region stanzaArgumentOutsideTypeParameter start="<" end=">"  contained contains=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen nextgroup=stanzaArgumentOutsideOr,stanzaArgumentOutsideAnd,stanzaArgumentOutsideTypeParameter,stanzaArgumentOutsideArrow,stanzaArgumentComma skipwhite
-syn region stanzaArgumentTupleType start="\[" end="\]"           contained contains=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen 
-            \ nextgroup=stanzaArgumentOutsideTypeOr,stanzaArgumentOutsideAnd,stanzaArgumentOutsideTypeParameter,stanzaArgumentOutsideArrow,stanzaArgumentComma skipwhite
-syn region stanzaArgumentOutsideTypeParen matchgroup=stanzaArgumentOutsideTypeParen start="(" end=")"      contained contains=stanzaArgumentOutsideType,stanzaArgumentTupleOutsideType,stanzaArgumentOutsideTypeParen 
-            \ nextgroup=stanzaArgumentOutsideTypeOr,stanzaArgumentOutsideAnd,stanzaArgumentOutsideTypeParameter,stanzaArgumentOutsideArrow,stanzaArgumentComma skipwhite
-
-
-syn match  stanzaArgumentArrow "->"                        contained nextgroup=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen skipwhite
-syn match  stanzaArgumentTypeOr "|"                        contained nextgroup=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen skipwhite
-syn region stanzaArgumentTypeParameter start="<" end=">"   contained contains= stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen skipwhite
-
-syn region stanzaArgumentType matchgroup=stanzaArgumentType start="(" end=")"            contained contains=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen 
-            \ nextgroup=stanzaArgumentTypeOr,stanzaArgumentTypeParameter,stanzaArgumentArrow,stanzaArgumentComma,stanzaArgumentTypeAnd skipwhite
-syn region stanzaArgumentTupleType matchgroup=stanzaArgumentTupleType start="\[" end="\]"     contained contains=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen 
-            \ nextgroup=stanzaArgumentTypeOr,stanzaArgumentTypeParameter,stanzaArgumentArrow,stanzaArgumentComma,stanzaArgumentTypeAnd skipwhite
-syn match  stanzaArgumentType  "[^ -$!<>|,=:;()\[ ]\+\|()" contained nextgroup=stanzaArgumentTypeOr,stanzaArgumentTypeParameter,stanzaArgumentArrow,stanzaArgumentTypeComma,stanzaArgumentTypeAnd skipwhite
-syn match  stanzaArgumentTypeComma ","                     contained nextgroup=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen skipwhite
-syn match  stanzaArgumentTypeAnd   "&"                     contained nextgroup=stanzaArgumentType,stanzaArgumentTupleType,stanzaArgumentTypeParen skipwhite
-
+" Highest precedence Stuff Goes Here
+syn keyword stanzaConditional    if else switch match case when
+syn keyword stanzaRepeat         for while
+syn keyword stanzaOperator       and in to is not or new through by let
+syn keyword stanzaScopeDecl      public
+syn keyword stanzaEmptyArg       _
+syn keyword stanzaException      throw try catch
 
 if !exists("stanza_no_builtin_highlight")
   " built-in constants
@@ -131,7 +112,7 @@ if !exists("stanza_no_builtin_highlight")
   syn keyword stanzaBuiltin	print print-all println println-all
   syn keyword stanzaBuiltin length
   syn keyword stanzaBuiltin list head headn tail tailn
-  syn keyword stanzaBuiltin do map
+  syn keyword stanzaBuiltin do map find
   syn keyword stanzaBuiltin equal? less? greater? less-eq? greater-eq?
   syn keyword stanzaBuiltin substring
   syn keyword stanzaBuiltin get set
@@ -154,8 +135,8 @@ syn match stanzaStringEscape "\\[nrfvb\\\"\']" contained
 
 " number literals
 if !exists("stanza_no_number_highlight")
-  syn match stanzaNumber "\<\d\+\>"
-  syn match stanzaNumber "\<\d\+\.\d+\>"
+  execute 'syn match stanzaNumber "\<'.NUM.'\>"'
+  execute 'syn match stanzaNumber "\<-'.NUM.'\>"'
 endif
 
 " Sync at the beginning of class, function, or method definition.
@@ -209,6 +190,7 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaDefMethod    Keyword
   HiLink stanzaDefInterface Keyword
   HiLink stanzaDefStruct    Keyword
+  HiLink stanzaFunctionArrow Operator
 
   " Cast
   HiLink stanzaAs           Keyword
@@ -220,12 +202,14 @@ if version >= 508 || !exists("did_stanza_syn_inits")
 
   " Type Keywords
   HiLink stanzaType          Type
-  HiLink stanzaTupleType     Keyword
+  HiLink stanzaTypeTuple     Operator
+  HiLink stanzaTypeParameter Operator
+  HiLink stanzaTypeOperator  Operator
+
   HiLink stanzaArrow         Keyword
   HiLink stanzaOr            Keyword
   HiLink stanzaColonType     Keyword
   HiLink stanzaSubType       Keyword
-  HiLink stanzaTypeParameter Keyword
   HiLink stanzaTypeAnd       Keyword
 
   HiLink stanzaInfixOperators   Operator
@@ -241,6 +225,7 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaArgumentTypeAnd      Keyword
   HiLink stanzaArgumentArrow        Keyword
   HiLink stanzaArgumentTupleType    Keyword
+  HiLink stanzaArgumentTypeOperator Keyword
 
   HiLink stanzaArgumentOutsideType          Type
   HiLink stanzaArgumentOutsideOr            Keyword
