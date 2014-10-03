@@ -53,7 +53,7 @@ syn region stanzaChar matchgroup=stanzaChar start="\'" end="\'" contains=stanzaS
 syn match   stanzaColonType  ":"               contained nextgroup=stanzaType                    skipwhite
 
 " Casting
-execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaAs skipwhite'
+execute 'syn match   stanzaIdentifier "'.ID.'"    nextgroup=stanzaAs,stanzaColonType skipwhite'
 syn keyword stanzaAs                 as             nextgroup=stanzaType skipwhite
 
 " Setter Function
@@ -96,14 +96,14 @@ syn match  stanzaArgumentComma ","                         contained nextgroup=s
 syn match  stanzaArgumentColon ":"                         contained nextgroup=stanzaType skipwhite
 
 
-
 " Highest precedence Stuff Goes Here
-syn keyword stanzaConditional    if else switch match case when
+syn keyword stanzaConditional    if else switch match case when if-defined if-not-defined
 syn keyword stanzaRepeat         for while
 syn keyword stanzaOperator       and in to is not or new through by let
 syn keyword stanzaScopeDecl      public
 syn keyword stanzaEmptyArg       _
 syn keyword stanzaException      throw try catch
+
 
 if !exists("stanza_no_builtin_highlight")
   " built-in constants
@@ -123,10 +123,11 @@ if !exists("stanza_no_builtin_highlight")
   syn keyword stanzaBuiltin to-string to-int to-char to-float to-array to-stream
   syn keyword stanzaBuiltin lo hi sin cos tan asin acos atan atan2 sqrt pow log log10 exp ceil floor round
   syn keyword stanzaBuiltin more? calc-next close next peek
+  syn keyword stanzaBuiltin make-array
   syn keyword stanzaBuiltin $do-prim
   syn keyword stanzaBuiltin current-coroutine parent winder set-winder windouts windins call-windins
   syn keyword stanzaBuiltin send break open?
-  syn keyword stanzaBuiltin any? none? all?
+  syn keyword stanzaBuiltin any? none? all? empty?
   syn keyword stanzaBuiltin count join
 endif
 
