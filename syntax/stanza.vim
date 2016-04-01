@@ -77,10 +77,8 @@ syn keyword stanzaDef          defn defn*   nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefPackage   defpackage   nextgroup=stanzaDefPackageName skipwhite
 syn keyword stanzaVal          val          nextgroup=stanzaValName skipwhite
 syn keyword stanzaVar          var          nextgroup=stanzaVarName skipwhite
-syn keyword stanzaDefClass     defclass     nextgroup=stanzaType skipwhite
-syn keyword stanzaDefInterface definterface nextgroup=stanzaType skipwhite
 syn keyword stanzaDefMulti     defmulti     nextgroup=stanzaDefName skipwhite
-syn keyword stanzaDefInterface defmethod    nextgroup=stanzaDefName skipwhite
+syn keyword stanzaDefMethod    defmethod    nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefStruct    defstruct    nextgroup=stanzaType skipwhite
 syn keyword stanzaDefType      deftype      nextgroup=stanzaType skipwhite
 
@@ -190,7 +188,6 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaVar          Keyword
 "  HiLink stanzaVarName      Identifier
   HiLink stanzaDefPackage   Keyword
-  HiLink stanzaDefClass     Keyword
   HiLink stanzaDefMulti     Keyword
   HiLink stanzaDefMethod    Keyword
   HiLink stanzaDefInterface Keyword
