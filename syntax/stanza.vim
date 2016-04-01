@@ -8,6 +8,7 @@
 "                       keywords such as * and +. When Stanza supports
 "                       unicode, they will need to be added as well.
 "                       Stanza literals are broken again....
+"   2016 April      1 : New keyword: deftype
 
 if version < 600
     syntax clear
@@ -81,6 +82,7 @@ syn keyword stanzaDefInterface definterface nextgroup=stanzaType skipwhite
 syn keyword stanzaDefMulti     defmulti     nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefInterface defmethod    nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefStruct    defstruct    nextgroup=stanzaType skipwhite
+syn keyword stanzaDefType      deftype      nextgroup=stanzaType skipwhite
 
 execute 'syn match stanzaValName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
 execute 'syn match stanzaVarName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
@@ -193,6 +195,7 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaDefMethod    Keyword
   HiLink stanzaDefInterface Keyword
   HiLink stanzaDefStruct    Keyword
+  HiLink stanzaDefType      Keyword
   HiLink stanzaFunctionArrow Operator
 
   " Cast
