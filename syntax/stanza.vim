@@ -132,7 +132,7 @@ if !exists("stanza_no_builtin_highlight")
 endif
 
 " string literals with escapes
-syn region stanzaString start="\"[^"]" skip="\\\"" end="\"" contains=scalaStringEscape
+syn region stanzaString start=+"+ skip=+\\"+ end=+"+ contains=stanzaStringEscape
 syn match stanzaStringEscape "\\u[0-9a-fA-F]\{4}" contained
 syn match stanzaStringEscape "\\[nrfvb\\\"\']" contained
 
