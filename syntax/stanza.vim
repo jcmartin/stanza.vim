@@ -9,6 +9,9 @@
 "                       unicode, they will need to be added as well.
 "                       Stanza literals are broken again....
 "   2016 April      1 : New keyword: deftype
+"   2019 August     8 : Support for syntax related keywords, lostanza,
+"                       additional builtin functions,
+"                       and multiline comments (e.g. ;<doc>)
 
 if version < 600
     syntax clear
@@ -33,6 +36,7 @@ execute 'syn match   stanzaInfixOperators "'.OPER.OPER.'\{-}"'
 syn keyword stanzaInclude     import include
 
 syn match   stanzaComment    ";.*$" contains=stanzaTodo,@Spell
+syn region  stanzaMultilineComment  start=";<\z(..*\)>" end="<\z1>" contains=stanzaTodo,@Spell
 syn keyword stanzaTodo        FIXME NOTE NOTES TODO XXX contained
 
 syn keyword stanzaInclude     include                     nextgroup=stanzaIncludeFile skipwhite
@@ -72,15 +76,24 @@ syn match stanzaTypeOperator  "<:\||\|->\|&"       contained nextgroup=stanzaTyp
 
 
 " definitions
-syn keyword stanzaFn           fn           nextgroup=stanzaArgumentList skipwhite
+syn keyword stanzaFn           fn fn*       nextgroup=stanzaArgumentList skipwhite
 syn keyword stanzaDef          defn defn*   nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefPackage   defpackage   nextgroup=stanzaDefPackageName skipwhite
 syn keyword stanzaVal          val          nextgroup=stanzaValName skipwhite
 syn keyword stanzaVar          var          nextgroup=stanzaVarName skipwhite
 syn keyword stanzaDefMulti     defmulti     nextgroup=stanzaDefName skipwhite
-syn keyword stanzaDefMethod    defmethod    nextgroup=stanzaDefName skipwhite
+syn keyword stanzaDefMethod    defmethod defmethod* nextgroup=stanzaDefName skipwhite
 syn keyword stanzaDefStruct    defstruct    nextgroup=stanzaType skipwhite
 syn keyword stanzaDefType      deftype      nextgroup=stanzaType skipwhite
+syn keyword stanzaDefRule      defrule      nextgroup=stanzeValName skipwhite
+syn keyword stanzaDefSyntax    defsyntax    nextgroup=stanzaValName skipwhite
+syn keyword stanzaFailIf       fail-if      nextgroup=stanzaValName skipwhite
+
+" Production definition
+syn keyword stanzaDefProduction defproduction nextgroup=stanzaProdName skipwhite
+execute 'syn match stanzaProdName       "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
+
+" Syntax definition
 
 execute 'syn match stanzaValName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
 execute 'syn match stanzaVarName        "'.ID.'" contained nextgroup=stanzaColonType skipwhite'
@@ -95,14 +108,21 @@ execute 'syn match  stanzaArgument      "'.ID.'" contained nextgroup=stanzaArgum
 syn match  stanzaArgumentComma ","                         contained nextgroup=stanzaArgument skipwhite
 syn match  stanzaArgumentColon ":"                         contained nextgroup=stanzaType skipwhite
 
-
 " Highest precedence Stuff Goes Here
 syn keyword stanzaConditional    if else switch match case when if-defined if-not-defined
 syn keyword stanzaRepeat         for while
 syn keyword stanzaOperator       and in to is not or new through by let
-syn keyword stanzaScopeDecl      public
+syn keyword stanzaScopeDecl      public protected private
 syn keyword stanzaEmptyArg       _
 syn keyword stanzaException      throw try catch
+
+" LoStanza
+if !exists("stanza_no_lostanza_highlight")
+  execute 'syn match  stanzaExternName       "'.ID.'" contained nextgroup=stanzaArgumentColon skipwhite'
+  syn keyword stanzaLoStanza        lostanza
+  syn keyword stanzaExtern       extern       nextgroup=stanzaExternName skipwhite
+  syn keyword stanzaLoStanzaBuiltin call-c call-prim return labels goto
+endif
 
 
 if !exists("stanza_no_builtin_highlight")
@@ -113,13 +133,13 @@ if !exists("stanza_no_builtin_highlight")
   syn keyword stanzaBuiltin length
   syn keyword stanzaBuiltin list head headn tail tailn
   syn keyword stanzaBuiltin do map find filter
-  syn keyword stanzaBuiltin equal? less? greater? less-eq? greater-eq?
+  syn keyword stanzaBuiltin equal? not-equal? less? greater? less-eq? greater-eq?
   syn keyword stanzaBuiltin substring
   syn keyword stanzaBuiltin get set
   syn keyword stanzaBuiltin exit error identical? complement commandline-arguments procedure-path procedure-dir call-system
-  syn keyword stanzaBuiltin file-exists? read-file write-file 
+  syn keyword stanzaBuiltin file-exists? read-file write-file
   syn keyword stanzaBuiltin rand max min shift-left shift-right bit-or bit-xor bit-and bit-inv bit-set? neg abs
-  syn keyword stanzaBuiltin plus minus times divide modulo ceil-log2
+  syn keyword stanzaBuiltin plus minus times divide modulo ceil-log2 arithmetic-shift-right
   syn keyword stanzaBuiltin to-string to-int to-char to-float to-array to-stream
   syn keyword stanzaBuiltin lo hi sin cos tan asin acos atan atan2 sqrt pow log log10 exp ceil floor round
   syn keyword stanzaBuiltin more? calc-next close next peek
@@ -184,6 +204,7 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaDefName      Function
   HiLink stanzaDefNameParameterTypes Keyword
   HiLink stanzaVal          Keyword
+  HiLink stanzaExternName   Function
 "  HiLink stanzaValName      Identifier
   HiLink stanzaVar          Keyword
 "  HiLink stanzaVarName      Identifier
@@ -194,6 +215,13 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaDefStruct    Keyword
   HiLink stanzaDefType      Keyword
   HiLink stanzaFunctionArrow Operator
+  HiLink stanzaDefRule      Keyword
+  HiLink stanzaDefSyntax    Keyword
+  HiLink stanzaFailIf       Keyword
+
+  " Production
+  HiLink stanzaDefProduction Keyword
+" HiLink stanzaProdName  Identifier
 
   " Cast
   HiLink stanzaAs           Keyword
@@ -238,6 +266,7 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   HiLink stanzaArgumentOutsideTypeParameter Keyword
 
   HiLink stanzaComment      Comment
+  HiLink stanzaMultilineComment Comment
   HiLink stanzaIncludeFile  Keyword
 
   HiLink stanzaLiteral                  Constant
@@ -259,6 +288,11 @@ if version >= 508 || !exists("did_stanza_syn_inits")
   if !exists("stanza_no_doctest_highlight")
     HiLink stanzaDoctest    Special
     HiLink stanzaDoctestValue    Define
+  endif
+  if !exists("stanza_no_lostanza_highlight")
+    HiLink stanzaExtern       Keyword
+    HiLink stanzaLoStanza     Keyword
+    HiLink stanzaLoStanzaBuiltin Keyword
   endif
 
   delcommand HiLink
